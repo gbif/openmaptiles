@@ -1,29 +1,34 @@
 generalized_tables:
 
-  # etldoc: imposm3 -> osm_boundary_linestring_gen5 
+  # etldoc: imposm3 -> osm_boundary_linestring_gen5
   boundary_linestring_gen5:
     source: boundary_linestring
-    tolerance: 480.0
+    #tolerance: 480.0
+    tolerance: 3.9e-9
 
   # etldoc: imposm3 -> osm_boundary_linestring_gen4
   boundary_linestring_gen4:
     source: boundary_linestring
-    tolerance: 240.0
+    #tolerance: 240.0
+    tolerance: 1.9e-8
 
-  # etldoc: imposm3 -> osm_boundary_linestring_gen3    
+  # etldoc: imposm3 -> osm_boundary_linestring_gen3
   boundary_linestring_gen3:
     source: boundary_linestring
-    tolerance: 120.0
+    #tolerance: 120.0
+    tolerance: 9.7e-9
 
-  # etldoc: imposm3 -> osm_boundary_linestring_gen2    
+  # etldoc: imposm3 -> osm_boundary_linestring_gen2
   boundary_linestring_gen2:
     source: boundary_linestring
-    tolerance: 60.0
+    #tolerance: 60.0
+    tolerance: 4.9e-9
 
-  # etldoc: imposm3 -> osm_boundary_linestring_gen1    
+  # etldoc: imposm3 -> osm_boundary_linestring_gen1
   boundary_linestring_gen1:
     source: boundary_linestring
-    tolerance: 30.0
+    #tolerance: 30.0
+    tolerance: 2.4e-9
 
 tables:
   # etldoc: imposm3 -> osm_boundary_linestring

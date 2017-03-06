@@ -9,7 +9,7 @@ layer:
       foot paths. Styling the roads is the most essential part of the map.
       The `transportation` layer also contains polygons for features like plazas.
   buffer_size: 4
-  srs: +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over
+  srs: +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
   fields:
     class:
       description: |
@@ -60,7 +60,7 @@ layer:
       - parking_aisle
   datasource:
     geometry_field: geometry
-    srid: 900913
+    srid: 4326
     query: (SELECT geometry, class, oneway, ramp, brunnel, service FROM layer_transportation(!bbox!, z(!scale_denominator!))) AS t
 schema:
   - ./class.sql

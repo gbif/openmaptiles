@@ -45,8 +45,9 @@ CREATE OR REPLACE VIEW landuse_z12 AS (
 CREATE OR REPLACE VIEW landuse_z13 AS (
     SELECT osm_id, geometry, landuse, amenity, leisure, NULL::int as scalerank
     FROM osm_landuse_polygon
-    WHERE ST_Area(geometry) > 20000
+    WHERE ST_Area(geometry) > 1.6e-6
 );
+-- was 20000 area
 
 -- etldoc: osm_landuse_polygon -> landuse_z14
 CREATE OR REPLACE VIEW landuse_z14 AS (
@@ -100,4 +101,3 @@ RETURNS TABLE(osm_id bigint, geometry geometry, class text) AS $$
     ) AS zoom_levels
     WHERE geometry && bbox;
 $$ LANGUAGE SQL IMMUTABLE;
-

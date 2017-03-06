@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION update_osm_city_point() RETURNS VOID AS $$
 BEGIN
 
   -- Clear  OSM key:rank ( https://github.com/openmaptiles/openmaptiles/issues/108 )
-  -- etldoc: osm_city_point          -> osm_city_point 
+  -- etldoc: osm_city_point          -> osm_city_point
   UPDATE osm_city_point AS osm  SET "rank" = NULL WHERE "rank" IS NOT NULL;
 
   -- etldoc: ne_10m_populated_places -> osm_city_point
@@ -31,7 +31,8 @@ BEGIN
           ne.name = unaccent(osm.name)
       )
       AND osm.place IN ('city', 'town', 'village')
-      AND ST_DWithin(ne.geometry, osm.geometry, 50000)
+      AND ST_DWithin(ne.geometry, osm.geometry, 4.0e-6)
+      -- was 50km
   )
   UPDATE osm_city_point AS osm
   -- Move scalerank to range 1 to 10 and merge scalerank 5 with 6 since not enough cities
@@ -56,7 +57,7 @@ CREATE OR REPLACE FUNCTION place_city.flag() RETURNS trigger AS $$
 BEGIN
     INSERT INTO place_city.updates(t) VALUES ('y')  ON CONFLICT(t) DO NOTHING;
     RETURN null;
-END;    
+END;
 $$ language plpgsql;
 
 CREATE OR REPLACE FUNCTION place_city.refresh() RETURNS trigger AS

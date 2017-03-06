@@ -98,6 +98,7 @@ tables:
       type: geometry
     - name: area
       type: webmerc_area
+      # TODO
     - *name
     - *name_en
     - *name_de
