@@ -1,0 +1,151 @@
+#!/usr/bin/python2
+"""mbtiles-from-queue takes generated tiles from RabbitMQ and stores them in a MBTiles database.
+
+This script is intended to be run directly.
+
+    mbtiles-from-queue --mq-host mq.gbif.org --mq-user xx --mq-pass xx --mq-vhost /users/mblissett --queue done-laea --database laea.mbtiles --create
+"""
+
+from sys import stderr, path
+from os.path import realpath, dirname, exists
+from optparse import OptionParser
+from urlparse import urlparse
+from urllib import urlopen
+
+from msgpack import unpackb
+from TileStache.MBTiles import create_tileset, put_tiles
+
+import signal
+import sys
+
+#
+# Most imports can be found below, after the --include-path option is known.
+#
+
+parser = OptionParser(usage="""%prog [options] [zoom...]
+
+Take generated tiles from RabbitMQ and stores them in a MBTiles database.
+
+Example:
+
+    mbtiles-from-queue --mq-host mq.gbif.org --mq-user xx --mq-pass xx --mq-vhost /users/mblissett --queue done-laea --database laea.mbtiles --create""")
+
+defaults = dict(create_database=False, verbose=True)
+
+parser.set_defaults(**defaults)
+
+parser.add_option('-q', '--queue', dest='queue_name',
+                  help='From queue.')
+
+parser.add_option('-d', '--database', dest='database',
+                  help='To database.')
+
+parser.add_option('--create', action='store_true', dest='create_database',
+                  help='Create database.')
+
+parser.add_option('-i', '--include-path', dest='include_paths',
+                  help="Add the following colon-separated list of paths to Python's include path (aka sys.path)")
+
+parser.add_option('--mq-host', dest='mq_host',
+                  help='RabbitMQ server.')
+
+parser.add_option('--mq-user', dest='mq_user',
+                  help='RabbitMQ user name.')
+
+parser.add_option('--mq-pass', dest='mq_pass',
+                  help='RabbitMQ password.')
+
+parser.add_option('--mq-vhost', dest='mq_vhost',
+                  help='RabbitMQ virtual host.')
+
+global channel
+channel = None
+
+global db
+db = None
+
+tiles = []
+i = 0
+def makeTile(ch, method, properties, data):
+    global tiles
+    global i
+    i = i + 1
+    body = unpackb(data)
+    tiles.append( (body['zoom'], body['column'], body['row'], body['tile']) )
+
+    if (i % 500 == 0):
+        print("Received", i, body['zoom'], body['column'], body['row'])
+
+    if (len(tiles) >= 50000):
+        print("Putting", len(tiles), "tiles")
+        put_tiles(db, tiles)
+        ch.basic_ack(delivery_tag = method.delivery_tag, multiple = True)
+        tiles = []
+
+    global channel
+    channel = ch
+
+def exit_handler(signal, frame):
+    global channel
+    global tiles
+    print('You pressed Ctrl+C!')
+    put_tiles(db, tiles)
+    channel.basic_ack(delivery_tag = 0, multiple = True)
+    tiles = []
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    options, zooms = parser.parse_args()
+
+    if options.include_paths:
+        for p in options.include_paths.split(':'):
+            path.insert(0, p)
+
+    from TileStache import getTile, Config
+    from TileStache.Core import KnownUnknown
+    from TileStache.Config import buildConfiguration
+    import TileStache
+    import pika
+
+    from ModestMaps.Core import Coordinate
+
+    try:
+        # determine if we have enough information to prep a config and layer
+
+        if options.queue_name is None:
+            raise KnownUnknown('Missing required queue name (--queue) parameter.')
+
+        queue_name = options.queue_name
+
+        if options.database is None:
+            raise KnownUnknown('Missing required database name (--database) parameter.')
+
+        db = options.database
+
+    except KnownUnknown, e:
+        parser.error(str(e))
+
+    if options.create_database:
+        print("Creating database", db)
+        create_tileset(db, 'name', 'type', 'version', 'description', 'pbf', 'bounds')
+
+    credentials = pika.PlainCredentials(options.mq_user, options.mq_pass)
+    connection = pika.BlockingConnection(pika.ConnectionParameters(options.mq_host, 5672, options.mq_vhost, credentials))
+    channel = connection.channel()
+
+    channel.queue_declare(queue=queue_name)
+
+    # Queue stuff
+    i = 0
+    queued = 0
+    waiting = False
+
+    channel.basic_qos(prefetch_count=60000)
+    channel.basic_consume(makeTile,
+                          queue=queue_name)
+
+    signal.signal(signal.SIGINT, exit_handler)
+
+    print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.start_consuming()

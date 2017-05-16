@@ -45,6 +45,18 @@ build/mapping.yaml:
 build/tileset.sql:
 	mkdir -p build && generate-sql openmaptiles.yaml > build/tileset.sql
 
+build/tilestache.cfg:
+	mkdir -p build && bin/generate-tilestache $(srs) > build/tilestache.cfg
+
+build/tilestache_3031.cfg:
+	mkdir -p build && bin/generate-tilestache 3031 > build/tilestache_3031.cfg
+
+build/tilestache_3575.cfg:
+	mkdir -p build && bin/generate-tilestache 3575 > build/tilestache_3575.cfg
+
+build/tilestache_4326.cfg:
+	mkdir -p build && bin/generate-tilestache 4326 > build/tilestache_4326.cfg
+
 clean:
 	rm -f build/openmaptiles.tm2source/data.yml && rm -f build/mapping.yaml && rm -f build/tileset.sql
 

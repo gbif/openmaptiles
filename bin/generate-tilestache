@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+# This Python file uses the following encoding: utf-8
+#
+# Convert an OpenMapTiles TileServer configuration into TileStache configuration
+#
+
+import copy
+import json
+import yaml
+import re
+import sys
+
+try:
+    srid = int(sys.argv[1])
+except:
+    print "First argument should be srid, e.g. 4326"
+    exit(1)
+
+included_layers = ["water", "waterway", "landcover"]
+
+layers_with_label_padding = ["water_name", "transportation_name", "place", "housenumber", "poi"]
+
+if srid == 4326:
+    projection = "WGS84"
+
+elif srid == 3031:
+    # Antarctic stereographic projection.
+    #
+    extent = 12367396.2185
+    # The extent of this projection, to the Equator, is ±12367396.2185 in both directions.
+
+    # At zoom 0, we want one tile with display size 512×512, covering the southern hemisphere.
+    # 2×12367396.2185 ÷ 512 = 48310.14147851562
+    resolutions = [2*extent / (512 * 2**z) for z in range(0,17)]
+    assert (resolutions[-2] > 1.0)
+    assert (resolutions[-1] < 1.0)
+    resolutions[-1] = 1.0
+    resolutions_str = [('%.20g' % (r)) for r in resolutions]
+    resolutions_text = '['+str.join(', ', resolutions_str)+']'
+    # [48310.141478515623021, 24155.07073925781151, 12077.535369628905755, …]
+
+    # Shift the tile grid origin to be the bottom left of the map.
+    transformation = "1, 0, %.20g, 0, -1, %.20g" % (extent, extent)
+
+    projection = "TileStache.Goodies.Proj4Projection:Proj4Projection(" + \
+                 "'+proj=laea +lat_0=90 +lon_0=10 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs', " + \
+                 resolutions_text + ", " + \
+                 "tile_size=512, " + \
+                 "transformation=Transformation(" + transformation + "))"
+
+    layers_with_materialized_views = ["landcover", "water", "waterway"]
+
+elif srid == 3575:
+    # LAEA Arctic projection.
+    #
+    extent = 2**0.5*6371007.2
+    # The extent of this projection, to the Equator, is ±9009964.7882166393101215362548828125 in both directions, see http://gis.stackexchange.com/questions/149440/epsg3575-projected-bounds
+
+    # At zoom 0, we want one tile with display size 512×512, covering the northern hemisphere
+    # 2×9009964.7882166393101215362548828125 ÷ 512 = 35195.174953971247305162250995635986328125
+    resolutions = [2*extent / (512 * 2**z) for z in range(0,17)]
+    assert (resolutions[-2] > 1.0)
+    assert (resolutions[-1] < 1.0)
+    resolutions[-1] = 1.0
+    resolutions_str = [('%.20g' % (r)) for r in resolutions]
+    resolutions_text = '['+str.join(', ', resolutions_str)+']'
+    # [35195.174953971247305, 17597.587476985623653, 8798.7937384928118263, …]
+
+    # Shift the tile grid origin to be the bottom left of the map.
+    transformation = "1, 0, %.20g, 0, -1, %.20g" % (extent, extent)
+
+    projection = "TileStache.Goodies.Proj4Projection:Proj4Projection(" + \
+                 "'+proj=laea +lat_0=90 +lon_0=10 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs', " + \
+                 resolutions_text + ", " + \
+                 "tile_size=512, " + \
+                 "transformation=Transformation(" + transformation + "))"
+
+    included_layers.extend(['graticules', 'boundary', 'mountain_peak', 'place', 'water_name'])
+    layers_with_materialized_views = ['graticules', "landcover", "water", "waterway"]
+
+elif srid == '3575-whole-globe':
+
+    # The extent of this projection is ±12742014.4 in both directions, see http://gis.stackexchange.com/questions/149440/epsg3575-projected-bounds
+    # (Confirm by converting 100°W 89.99999999°S, which becomes 12742014.3618 -7.80223355146e-10)
+
+    # At zoom 0, we want one tile with display size 512×512.
+
+    # 2×12742014.4 ÷ 512 = 49773.49375
+    # Halving it for successive zooms, until we get to one with a scale under 1:1, gives:
+    # [49773.49375, 24886.746875, 12443.3734375, 6221.68671875, 3110.843359375, 1555.4216796875, 777.71083984375, 388.855419921875, 194.4277099609375, 97.21385498046875, 48.606927490234376, 24.303463745117188, 12.151731872558594, 6.075865936279297, 3.0379329681396485, 1.5189664840698243, 1.0]
+
+    # Python: ['%.20g' % (2*12742014.4 / (512 * 2**z)) for z in range(0,17)]
+
+    # NB! Using an incorrect extent of ±20037508 (that's the Web Mercator extent! Nothing to do with this) we get compatibility with
+    # the ArcticConnect/PolarMap.js map.
+    #"extent ±20037508 for CartoDB/Tim compatibility": "78271,39135,19567,9783,4891,2445,1222,611,305,152,76,38,19,9,4,2,1",
+    #"hmm":"https://github.com/GeoSensorWebLab/polarmap.js/issues/3 -- not sure AC are using the right number here.",
+
+    projection = "TileStache.Goodies.Proj4Projection:Proj4Projection(" + \
+                 "'+proj=laea +lat_0=90 +lon_0=10 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs', " + \
+                 "[49773.493750000001455, 24886.746875000000728, 12443.373437500000364, 6221.6867187500001819, 3110.8433593750000909, 1555.4216796875000455, 777.71083984375002274, 388.85541992187501137, 194.42770996093750568, 97.213854980468752842, 48.606927490234376421, 24.303463745117188211, 12.151731872558594105, 6.0758659362792970526, 3.0379329681396485263, 1.5189664840698242632, 1.0], " + \
+                 "tile_size=512, " + \
+                 "transformation=Transformation(1, 0, 0, 0, -1, 0))"
+
+else:
+    print "Unknown SRID"
+    exit(1)
+
+# Basic structure
+disk_cache = {
+    "dirs": "portable",
+    "name": "Disk",
+    "path": "CACHE_DIR",
+    "umask": "0000",
+    "verbose": "False",
+}
+
+no_cache = {
+    "name": "Test"
+}
+
+config = {
+    "cache": no_cache,
+    "layers": {}
+}
+
+layerbase = {
+    'allowed origin': '*',
+    'projection': projection,
+    'tile height': 4096,
+    'provider': {
+        'class': "TileStache.Goodies.VecTiles:Provider",
+        'kwargs': {
+            "clip": False,
+            "dbinfo": {
+                "database": "openmaptiles",
+                "host": "postgres",
+                "password": "openmaptiles",
+                "port": "5432",
+                "user": "openmaptiles"
+            },
+            "padding": 128, # Increased below for layers with labels
+            "simplify": 0.0,
+            "srid": srid,
+            'queries': []
+        }
+    }
+}
+
+multilayerbase = {
+    'allowed origin': '*',
+    'projection': projection,
+    'provider': {
+        'class': "TileStache.Goodies.VecTiles:MultiProvider",
+        'kwargs': {}
+    }
+}
+
+# Read TileServer configuration
+stream = open("openmaptiles.yaml", "r")
+docs = yaml.load(stream)
+layers = docs['tileset']['layers']
+sublayers = []
+
+zooms = 14
+tile_size = 512
+
+for layer in layers:
+    print >> sys.stderr, "Processing layer", layer
+    layerstream = open(layer, 'r')
+    layerdata = yaml.load(layerstream)['layer']
+    layerid = layerdata['id']
+    layerquery = layerdata['datasource']['query']
+
+    if layerid not in included_layers:
+        print >> sys.stderr, layerid + " not included"
+        continue
+
+    print >> sys.stderr, "\tBasic query", layerquery
+
+    if srid == 4326:
+        layertsquery = layerquery.replace('geometry', 'geometry AS __geometry__')
+    else:
+        if layerid in layers_with_materialized_views:
+            #"SELECT geometry AS __geometry__, class::text FROM layer_waterway_3575(!bbox!, 0)",
+            print >> sys.stderr, layerid + "a aoe"
+            layertsquery = layerquery.replace('geometry', 'geometry AS __geometry__')
+            layertsquery = layertsquery.replace('layer_'+layerid, 'layer_'+layerid+('_%d' % (srid)))
+            print >> sys.stderr, layerid + "  " + layertsquery
+        else:
+            layertsquery = layerquery.replace('geometry', 'ST_Transform(geometry, %d) AS __geometry__' % (srid))
+            layertsquery = layertsquery.replace('!bbox!', 'ST_Transform(!bbox!, 4326)')
+
+            if srid == 3575:
+                layertsquery = layerquery.replace('geometry', 'ST_MakeValid(ST_Transform(ST_Intersection(ST_SetSRID(ST_MakeBox2D(ST_MakePoint(-180, 45), ST_MakePoint(180, 90)), 4326), geometry),3575)) AS __geometry__')
+
+
+    layertsquery = re.sub('^\(', '', layertsquery)
+    layertsquery = re.sub('\) AS t$', '', layertsquery)
+
+    layer_queries = []
+
+    if 'scale_denominator' in layertsquery or 'pixel_width' in layertsquery:
+        for z in range(zooms+1):
+            scale_denominator = (180.0 / (2**z)) / 180 * 40075000 / 512 / 0.00028
+            # print >> sys.stderr, 'SELECT %g, z(%.12g);' % (z, scale_denominator)
+
+            pixel_width = 180.0 / (512 * (2**z))
+            # print >> sys.stderr, 'Pixel Width at %g: z(%.12g);' % (z, pixel_width)
+
+            layer_ts_query_z = layertsquery.replace('!scale_denominator!', '%.12g' % scale_denominator) \
+                                           .replace('!pixel_width!', '%.12g' % pixel_width)
+            layer_queries.append(layer_ts_query_z)
+    else:
+        layer_queries.append(layertsquery)
+
+    newlayer = copy.deepcopy(layerbase)
+    newlayer['provider']['kwargs']['queries'] = layer_queries
+
+    # More padding for label layers.
+    if layerid in layers_with_label_padding:
+        newlayer['provider']['kwargs']['padding'] = 768
+
+    config['layers'][layerid] = newlayer
+    sublayers.append(layerid)
+
+mainlayer = copy.deepcopy(multilayerbase)
+mainlayer['provider']['kwargs']['names'] = sublayers
+
+mainlayer_name = 'EPSG:%d' % (srid)
+
+config['layers'][mainlayer_name] = mainlayer
+
+print json.dumps(config, sort_keys=True, indent=4, separators=(',', ': '))

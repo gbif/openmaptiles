@@ -7,9 +7,9 @@ data.xml
 # quickstart
 quickstart.log
 
-
 # imput / output data
 data/*
+export/*
 
 # generated source files
 build/*

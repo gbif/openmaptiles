@@ -1,0 +1,7 @@
+#!/bin/bash
+
+queue_length=$(curl -Ss -u guest:guest "http://mq.gbif.org:15672/api/queues/%2Fusers%2Fmblissett" | jq 'reduce (.[] | .messages) as $count (0; . + $count)')
+
+echo "Queue lengths are" $queue_length "for /users/mblissett"
+
+[ $(echo -n $queue_length) -lt 400000 ]
