@@ -24,6 +24,7 @@ tileset:
   center: [0, 0, 1]
   maxzoom: 14
   minzoom: 0
+  pixel_scale: 256
   defaults:
     srs: +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
     datasource:

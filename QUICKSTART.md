@@ -13,16 +13,18 @@
 * bash
 * git
 * make 
-* docker         >=1.10
+* docker         >=1.12.3
     * https://www.docker.com/products/overview
 * docker-compose >=1.7.1
     * https://docs.docker.com/compose/install/
 * disk space ( >= ~15Gb  )
     * for small extracts  >= ~15Gb
-    * for big extracts ( continents, planet) > 20 ... 1000 Gb
+    * for big extracts ( continents, planet) 250 Gb
     * And depends on
         * OpenStreetMap data size
         * Zoom level
+    * Best on SSD for postserve but completely usable on HDD
+    * Takes 24hrs to import on a reasonable machine, and is immediately available with postserve
 * memory ( >= 3Gb )
     * for small extracts 3Gb-8Gb RAM
     * for big extracts ( Europe, Planet) > 8-32 Gb
@@ -339,7 +341,6 @@ This is generating `.mbtiles` for your area :  [ MIN_ZOOM: "0"  - MAX_ZOOM: "7" 
 ./quickstart.sh ukraine          # Ukraine,europe
 ./quickstart.sh unterfranken          # Unterfranken,bayern
 ./quickstart.sh uruguay          # Uruguay,south-america
-./quickstart.sh us          # United States of America,north-america
 ./quickstart.sh us-midwest          # US Midwest,north-america
 ./quickstart.sh us-northeast          # US Northeast,north-america
 ./quickstart.sh us-pacific          # US Pacific,north-america
@@ -361,6 +362,18 @@ This is generating `.mbtiles` for your area :  [ MIN_ZOOM: "0"  - MAX_ZOOM: "7" 
 ./quickstart.sh wyoming          # Wyoming,us
 ./quickstart.sh yukon          # Yukon,canada
 ```
+### Using your own OSM data
+Mbtiles can be generated from an arbitrary osm.pbf (e.g. for a region that is not covered by an existing extract) by making the `data/` directory and placing an osm.pbf inside/
+
+```
+mkdir -p data
+mv my.osm.pbf data/
+./quickstart.sh my
+```
+
+### Check postserve
+*  ` docker-compose up -d postserve`
+and the generated maps are going to be available in browser on [localhost:8090/0/0/0.pbf](http://localhost:8090/0/0/0.pbf).
 
 ### Check tileserver
 

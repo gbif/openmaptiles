@@ -1,4 +1,3 @@
-
 tables:
 
   # etldoc: imposm3 -> osm_peak_point
@@ -14,6 +13,9 @@ tables:
       type: string
     - name: name_en
       key: name:en
+      type: string
+    - name: name_de
+      key: name:de
       type: string
     - name: ele
       key: ele

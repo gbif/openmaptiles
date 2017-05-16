@@ -48,31 +48,30 @@ CREATE OR REPLACE VIEW water_z6 AS (
     -- etldoc:  ne_10m_ocean ->  water_z6
     SELECT geometry, 'ocean'::text AS class FROM ne_10m_ocean
     UNION ALL
-   -- etldoc:  ne_10m_lakes ->  water_z6
-    SELECT geometry, 'lake'::text AS class FROM ne_10m_lakes
+   -- etldoc:  osm_water_polygon_gen6 ->  water_z6
+    SELECT geometry, 'lake' AS class FROM osm_water_polygon_gen6
 );
 
 CREATE OR REPLACE VIEW water_z7 AS (
     -- etldoc:  ne_10m_ocean ->  water_z7
     SELECT geometry, 'ocean'::text AS class FROM ne_10m_ocean
     UNION ALL
-    -- etldoc:  osm_water_polygon_gen3 ->  water_z7
+    -- etldoc:  osm_water_polygon_gen5 ->  water_z7
     SELECT geometry, 'lake' AS class FROM osm_water_polygon_gen5
 );
 
 CREATE OR REPLACE VIEW water_z8 AS (
-    -- etldoc:  ne_10m_ocean ->  water_z8
+    -- etldoc:  osm_ocean_polygon_gen4 ->  water_z8
     SELECT geometry, 'ocean'::text AS class FROM osm_ocean_polygon_gen4
     UNION ALL
-    -- etldoc:  osm_water_polygon_gen2 ->  water_z8
-    SELECT geometry, 'lake' AS class FROM osm_water_polygon_gen4
+    -- etldoc:  osm_water_polygon_gen4 ->  water_z8
 );
 
 CREATE OR REPLACE VIEW water_z9 AS (
     -- etldoc:  osm_ocean_polygon_gen3 ->  water_z9
     SELECT geometry, 'ocean'::text AS class FROM osm_ocean_polygon_gen3
     UNION ALL
-    -- etldoc:  osm_water_polygon_gen1 ->  water_z9
+    -- etldoc:  osm_water_polygon_gen3 ->  water_z9
     SELECT geometry, 'lake'::text AS class FROM osm_water_polygon_gen3
 );
 
@@ -88,8 +87,8 @@ CREATE OR REPLACE VIEW water_z11 AS (
     -- etldoc:  osm_ocean_polygon_gen1 ->  water_z11
     SELECT geometry, 'ocean'::text AS class FROM osm_ocean_polygon_gen1
     UNION ALL
-    -- etldoc:  osm_water_polygon ->  water_z11
-    SELECT geometry, water_class(waterway) AS class FROM osm_water_polygon_gen1 WHERE area > 3.2e-6
+    -- etldoc:  osm_water_polygon_gen1 ->  water_z11
+    SELECT geometry, water_class(waterway) AS class FROM osm_water_polygon_gen1
 );
 
 CREATE OR REPLACE VIEW water_z12 AS (
@@ -97,7 +96,7 @@ CREATE OR REPLACE VIEW water_z12 AS (
     SELECT geometry, 'ocean'::text AS class FROM osm_ocean_polygon
     UNION ALL
     -- etldoc:  osm_water_polygon ->  water_z12
-    SELECT geometry, water_class(waterway) AS class FROM osm_water_polygon WHERE area > 8.1e-7
+    SELECT geometry, water_class(waterway) AS class FROM osm_water_polygon
 );
 
 CREATE OR REPLACE VIEW water_z13 AS (
@@ -156,7 +155,7 @@ RETURNS TABLE(geometry geometry, class text) AS $$
         -- etldoc: water_z11 ->  layer_water:z11
         SELECT * FROM water_z11 WHERE zoom_level = 11
         UNION ALL
-        -- etldoc: water_z12 ->  layer_water:z2
+        -- etldoc: water_z12 ->  layer_water:z12
         SELECT * FROM water_z12 WHERE zoom_level = 12
         UNION ALL
         -- etldoc: water_z13 ->  layer_water:z13

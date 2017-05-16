@@ -4,7 +4,7 @@ volumes:
   cache:
 services:
   postgres:
-    image: "openmaptiles/postgis:2.3"
+    image: "openmaptiles/postgis:2.5"
     volumes:
     - pgdata:/var/lib/postgresql/data
     networks:
@@ -19,6 +19,7 @@ services:
     - postgres_conn
   import-water:
     image: "gbif/import-water:latest"
+    #image: "openmaptiles/import-water:0.4"
     env_file: .env
     networks:
     - postgres_conn
@@ -29,6 +30,7 @@ services:
     - postgres_conn
   import-osm:
     image: "gbif/import-osm:0.2"
+    #image: "openmaptiles/import-osm:0.4"
     env_file: .env
     environment:
       DIFF_MODE: ${DIFF_MODE}
@@ -45,6 +47,7 @@ services:
     - postgres_conn
   import-osm-diff:
     image: "gbif/import-osm:latest"
+    #image: "openmaptiles/import-osm:0.4"
     env_file: .env
     command: ./import_diff.sh
     environment:
@@ -57,6 +60,7 @@ services:
      - cache:/cache
   update-osm:
     image: "gbif/import-osm:latest"
+    #image: "openmaptiles/import-osm:0.4"
     env_file: .env
     environment:
       DIFF_MODE: ${DIFF_MODE}
@@ -91,7 +95,7 @@ services:
     ports:
      - "3000:3000"
   generate-changed-vectortiles:
-    image: "openmaptiles/generate-vectortiles:0.1"
+    image: "openmaptiles/generate-vectortiles:0.1.1"
     command: ./export-list.sh
     volumes:
     - ./data:/export
@@ -100,7 +104,7 @@ services:
     - postgres_conn
     env_file: .env
   generate-vectortiles:
-    image: "openmaptiles/generate-vectortiles:0.1"
+    image: "openmaptiles/generate-vectortiles:0.1.1"
     volumes:
     - ./data:/export
     - ./build/openmaptiles.tm2source:/tm2source
@@ -113,6 +117,15 @@ services:
       BBOX: ${BBOX}
       MIN_ZOOM: ${MIN_ZOOM}
       MAX_ZOOM: ${MAX_ZOOM}
+  postserve:
+    image: "openmaptiles/postserve:0.1"
+    env_file: .env
+    networks:
+     - postgres_conn
+    ports:
+    - "8090:8080"
+    volumes:
+     - ./build/openmaptiles.tm2source:/mapping
   tilestache-server:
     image: "gbif/tilestache-vectortiles"
     ports:

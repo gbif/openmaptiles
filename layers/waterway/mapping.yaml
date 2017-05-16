@@ -3,20 +3,20 @@ generalized_tables:
   waterway_linestring_gen3:
     source: waterway_linestring_gen2
     sql_filter: waterway IN ('river')
-    #tolerance: 200.0
     tolerance: 1.6e-8
+    #tolerance: ZRES9
   # etldoc: imposm3 -> osm_waterway_linestring_gen2
   waterway_linestring_gen2:
     source: waterway_linestring_gen1
     sql_filter: waterway IN ('river')
-    #tolerance: 100.0
     tolerance: 8.1e-9
+    #tolerance: ZRES10
   # etldoc: imposm3 -> osm_waterway_linestring_gen1
   waterway_linestring_gen1:
     source: waterway_linestring
     sql_filter: waterway IN ('river')
-    #tolerance: 50.0
     tolerance: 4.0e-9
+    #tolerance: ZRES11
 tables:
   # etldoc: imposm3 -> osm_waterway_linestring
   waterway_linestring:
@@ -34,6 +34,9 @@ tables:
       type: string
     - name: name_en
       key: name:en
+      type: string
+    - name: name_de
+      key: name:de
       type: string
     mapping:
       waterway:

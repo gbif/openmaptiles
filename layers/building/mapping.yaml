@@ -5,10 +5,10 @@ generalized_tables:
   # etldoc: imposm3 -> osm_building_polygon_gen1
   building_polygon_gen1:
     source: building_polygon
-    #sql_filter: area>1400.0
     sql_filter: area>1.1e-07
-    #tolerance: 10.0
     tolerance: 8.1e-10
+    #sql_filter: area>power(ZRES13,2)
+    #tolerance: ZRES13
 
 tables:
   # etldoc: imposm3 -> osm_building_polygon
@@ -19,6 +19,8 @@ tables:
     - name: geometry
       type: validated_geometry
     - name: area
+      type: area
+    - name: webmerc_area
       type: webmerc_area
     - name: building
       key: building
@@ -73,6 +75,8 @@ tables:
     - name: geometry
       type: validated_geometry
     - name: area
+      type: area
+    - name: webmerc_area
       type: webmerc_area
     - name: building
       key: building
@@ -159,6 +163,8 @@ tables:
     - name: geometry
       type: validated_geometry
     - name: area
+      type: area
+    - name: webmerc_area
       type: webmerc_area
     - name: building
       key: building
