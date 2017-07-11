@@ -166,14 +166,14 @@ fi
 echo " "
 echo "-------------------------------------------------------------------------------------"
 echo "====> : Remove old generated source files ( ./build/* ) ( if they exist ) "
-docker run --rm -v $(pwd):/tileset openmaptiles/openmaptiles-tools make clean
+docker-compose run --rm openmaptiles-tools make clean
 
 echo " "
 echo "-------------------------------------------------------------------------------------"
 echo "====> : Code generating from the layer definitions ( ./build/mapping.yaml; ./build/tileset.sql )"
 echo "      : The tool source code: https://github.com/openmaptiles/openmaptiles-tools "
 echo "      : But we generate the tm2source, Imposm mappings and SQL functions from the layer definitions! "
-docker run --rm -v $(pwd):/tileset openmaptiles/openmaptiles-tools make
+docker-compose run --rm openmaptiles-tools make
 
 echo " "
 echo "-------------------------------------------------------------------------------------"
@@ -288,7 +288,11 @@ cat ./data/quickstart_checklist.chk
 
 ENDTIME=$(date +%s)
 ENDDATE=$(date +"%Y-%m-%dT%H:%M%z")
-MODDATE=$(stat -c  %y  ./data/${testdata} )
+if stat --help >/dev/null 2>&1; then
+  MODDATE=$(stat -c %y ./data/${testdata} )
+else
+  MODDATE=$(stat -f%Sm -t '%F %T %z' ./data/${testdata} )
+fi
 
 echo " "
 echo " "
@@ -314,7 +318,7 @@ echo "====> : (disk space) We have created the new vectortiles ( ./data/tiles.mb
 echo "      : Please respect the licenses (OdBL for OSM data) of the sources when distributing the MBTiles file."
 echo "      : Created from $testdata ( file moddate: $MODDATE ) "
 echo "      : Size: "
-ls ./data/*.mbtiles -la
+ls -la ./data/*.mbtiles
 
 echo " "
 echo "-------------------------------------------------------------------------------------"

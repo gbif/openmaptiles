@@ -1,0 +1,7 @@
+tables:
+  graticules:
+    fields:
+    - name: name
+      type: string
+    - name: geometry
+      type: validated_geometry

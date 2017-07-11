@@ -14,6 +14,7 @@ CREATE OR REPLACE FUNCTION landcover_class(landuse VARCHAR, "natural" VARCHAR, l
          WHEN landuse IN ('farmland', 'farm', 'orchard', 'vineyard', 'plant_nursery') THEN 'farmland'
          WHEN "natural" IN ('glacier', 'ice_shelf') THEN 'ice'
          WHEN "natural"='wood' OR landuse IN ('forest') THEN 'wood'
+         WHEN "natural" IN ('bare_rock', 'scree') THEN 'rock'
          WHEN "natural"='grassland' OR landuse IN ('grass', 'meadow', 'allotments', 'grassland', 'park', 'village_green', 'recreation_ground') OR leisure='park' THEN 'grass'
          WHEN "natural"='wetland' OR wetland IN ('bog', 'swamp', 'wet_meadow', 'marsh', 'reedbed', 'saltern', 'tidalflat', 'saltmarsh', 'mangrove') THEN 'wetland'
         ELSE NULL
@@ -39,6 +40,11 @@ CREATE OR REPLACE VIEW landcover_z5 AS (
     UNION ALL
     -- etldoc: ne_10m_antarctic_ice_shelves_polys ->  landcover_z5
     SELECT NULL::bigint AS osm_id, geometry, NULL::text AS landuse, 'ice_shelf'::text AS "natural", NULL::text AS leisure, NULL::text AS wetland FROM ne_10m_antarctic_ice_shelves_polys
+);
+
+CREATE OR REPLACE VIEW landcover_z7 AS (
+    -- etldoc: osm_landcover_polygon_gen7 ->  landcover_z7
+    SELECT osm_id, geometry, landuse, "natural", leisure, wetland FROM osm_landcover_polygon_gen7
 );
 
 CREATE OR REPLACE VIEW landcover_z8 AS (
@@ -96,9 +102,13 @@ RETURNS TABLE(osm_id bigint, geometry geometry, class text, subclass text) AS $$
         SELECT * FROM landcover_z2
         WHERE zoom_level BETWEEN 2 AND 4 AND geometry && bbox
         UNION ALL
-        -- etldoc:  landcover_z5 -> layer_landcover:z5_7
+        -- etldoc:  landcover_z5 -> layer_landcover:z5_6
         SELECT * FROM landcover_z5
-        WHERE zoom_level BETWEEN 5 AND 7 AND geometry && bbox
+        WHERE zoom_level BETWEEN 5 AND 6 AND geometry && bbox
+        UNION ALL
+        -- etldoc:  landcover_z7 -> layer_landcover:z7
+        SELECT *
+        FROM landcover_z7 WHERE zoom_level = 7 AND geometry && bbox
         UNION ALL
         -- etldoc:  landcover_z8 -> layer_landcover:z8
         SELECT *
