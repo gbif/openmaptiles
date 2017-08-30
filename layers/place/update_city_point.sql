@@ -41,6 +41,10 @@ BEGIN
   FROM important_city_point AS ne
   WHERE osm.osm_id = ne.osm_id;
 
+  UPDATE osm_city_point
+  SET tags = slice_language_tags(tags) || get_basic_names(tags, geometry)
+  WHERE COALESCE(tags->'name:latin', tags->'name:nonlatin', tags->'name_int') IS NULL;
+
 END;
 $$ LANGUAGE plpgsql;
 
