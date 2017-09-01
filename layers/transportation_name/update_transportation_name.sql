@@ -111,9 +111,9 @@ CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen3_highway_parti
 
 -- etldoc: osm_transportation_name_linestring_gen3 -> osm_transportation_name_linestring_gen4
 CREATE MATERIALIZED VIEW osm_transportation_name_linestring_gen4 AS (
-    SELECT ST_Simplify(geometry, 500) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, network, z_order
+    SELECT ST_Simplify(geometry, 4.0e-8) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, network, z_order
     FROM osm_transportation_name_linestring_gen3
-    WHERE highway = 'motorway' AND ST_Length(geometry) > 20000
+    WHERE highway = 'motorway' AND ST_Length(geometry) > 1.6e-6
 );
 CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen4_geometry_idx ON osm_transportation_name_linestring_gen4 USING gist(geometry);
 

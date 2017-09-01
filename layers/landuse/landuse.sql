@@ -46,7 +46,6 @@ CREATE OR REPLACE VIEW landuse_z13 AS (
     SELECT osm_id, geometry, landuse, amenity, leisure, NULL::int as scalerank
     FROM osm_landuse_polygon_gen1
 );
--- was 20000 area
 
 -- etldoc: osm_landuse_polygon -> landuse_z14
 CREATE OR REPLACE VIEW landuse_z14 AS (
