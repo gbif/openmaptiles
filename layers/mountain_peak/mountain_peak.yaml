@@ -2,7 +2,7 @@ layer:
   id: "mountain_peak"
   description: |
       [Natural peaks](http://wiki.openstreetmap.org/wiki/Tag:natural%3Dpeak)
-  buffer_size: 64
+  buffer_size: 256
   srs: +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
   fields:
     name: The OSM [`name`](http://wiki.openstreetmap.org/wiki/Key:name) value of the peak.
