@@ -122,47 +122,6 @@ services:
     - "8090:8080"
     volumes:
      - ./build/openmaptiles.tm2source:/mapping
-  tilestache-server:
-    image: "gbif/tilestache-vectortiles"
-    ports:
-     - 8000:8000
-     - 8787:8787
-    command: ./run-server.sh
-    volumes:
-     - ./export:/export
-     - ./build:/mapping
-    networks:
-    - postgres_conn
-    env_file: .env
-  tilestache-server-3575:
-    image: "gbifmaptiles/tilestache"
-    ports:
-     -  3575:8000
-     - 13575:8787
-    command: ./run-server.sh
-    volumes:
-     - ./export:/data/export
-     - ./gbifmaptiles:/data/tilestache
-    networks:
-    - postgres_conn
-    env_file: .env
-    environment:
-      LAYER: "EPSG:3575"
-  tilestache-seed:
-    image: "gbifmaptiles/tilestache"
-    command: ./export-local.sh
-    volumes:
-     - ./export:/data/export
-     - ./gbifmaptiles:/data/tilestache
-    networks:
-    - postgres_conn
-    env_file: .env
-    environment:
-      # Whole world
-      LAYER: "EPSG:4326"
-      BBOX: "-89.9999 -179.9999 89.9999 179.9999"
-      MIN_ZOOM: "0"
-      MAX_ZOOM: "5"
 
 networks:
   postgres_conn:
