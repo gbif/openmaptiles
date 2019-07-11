@@ -1,7 +1,8 @@
 tileset:
   layers:
-    # layers/graticules/graticules.yaml
-    - layers/water/water.yaml
+    # layers/world_extent/world_extent.yaml
+    # layers/water/water.yaml
+    - layers/water_3575/water_3575.yaml
     - layers/waterway/waterway.yaml
     - layers/landcover/landcover.yaml
     - layers/landuse/landuse.yaml
@@ -9,13 +10,15 @@ tileset:
     - layers/park/park.yaml
     - layers/boundary/boundary.yaml
     - layers/aeroway/aeroway.yaml
-    - layers/transportation/transportation.yaml
+    # layers/transportation/transportation.yaml
     ##layers/building/building.yaml
-    - layers/water_name/water_name.yaml
-    - layers/transportation_name/transportation_name.yaml
-    - layers/place/place.yaml
+    # layers/water_name/water_name.yaml
+    # layers/transportation_name/transportation_name.yaml
+    # layers/place/place.yaml
     ##layers/housenumber/housenumber.yaml
-    - layers/poi/poi.yaml
+    # layers/poi/poi.yaml
+    # layers/contour/contour.yaml
+    # layers/graticules/graticules.yaml
   name: OpenMapTiles-4326
   version: 0.1.0
   id: openmaptiles-4326

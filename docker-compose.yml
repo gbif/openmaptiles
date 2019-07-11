@@ -1,34 +1,50 @@
 version: "2"
-volumes:
-  pgdata:
-  cache:
+#volumes:
+#  pgdata:
+#    external: true
+#  cache:
+#    external: true
 services:
   postgres:
-    image: "openmaptiles/postgis:2.9"
+    image: "mb.gbif.org:5000/postgis:latest"
     volumes:
-    - pgdata:/var/lib/postgresql/data
+    - /map-3575:/var/lib/postgresql/data
     networks:
     - postgres_conn
     ports:
-     - "5432"
+     - "15432:5432"
     env_file: .env
   import-natural-earth:
-    image: "gbif/import-natural-earth:latest"
+    image: "mb.gbif.org:5000/import-natural-earth:latest"
     env_file: .env
     networks:
     - postgres_conn
   import-water:
-    image: "gbif/import-water:latest"
+    image: "mb.gbif.org:5000/import-water:latest"
     env_file: .env
     networks:
     - postgres_conn
+  import-polar-water:
+    image: "mb.gbif.org:5000/import-polar-water:latest"
+    env_file: .env
+    volumes:
+     - ./data:/import
+    networks:
+    - postgres_conn
+  polar-water-preview:
+    image: "mb.gbif.org:5000/polar-water-preview:latest"
+    env_file: .env
+    ports:
+    - "8080:8080"
+    networks:
+    - postgres_conn
   import-lakelines:
-    image: "gbif/import-lakelines:latest"
+    image: "mb.gbif.org:5000/import-lakelines:latest"
     env_file: .env
     networks:
     - postgres_conn
   import-osm:
-    image: "gbif/import-osm:latest"
+    image: "mb.gbif.org:5000/import-osm:latest"
     env_file: .env
     environment:
       DIFF_MODE: ${DIFF_MODE}
@@ -37,14 +53,14 @@ services:
     volumes:
      - ./data:/import
      - ./build:/mapping
-     - cache:/cache
+     - /4TB/Matt/docker-volumes/cache:/cache
   import-osmborder:
-    image: "gbif/import-osmborder:latest"
+    image: "mb.gbif.org:5000/import-osmborder:latest"
     env_file: .env
     networks:
     - postgres_conn
   import-osm-diff:
-    image: "gbif/import-osm:latest"
+    image: "mb.gbif.org:5000/import-osm:latest"
     env_file: .env
     command: ./import_diff.sh
     environment:
@@ -54,9 +70,9 @@ services:
     volumes:
      - ./data:/import
      - ./build:/mapping
-     - cache:/cache
+     - /4TB/Matt/docker-volumes/cache:/cache
   update-osm:
-    image: "gbif/import-osm:latest"
+    image: "mb.gbif.org:5000/import-osm:latest"
     env_file: .env
     environment:
       DIFF_MODE: ${DIFF_MODE}
@@ -66,7 +82,7 @@ services:
     volumes:
      - ./data:/import
      - ./build:/mapping
-     - cache:/cache
+     - /4TB/Matt/docker-volumes/cache:/cache
   import-sql:
     image: "openmaptiles/import-sql:0.6"
     env_file: .env
@@ -75,7 +91,7 @@ services:
     volumes:
      - ./build:/sql
   openmaptiles-tools:
-    image: "openmaptiles/openmaptiles-tools:0.6"
+    image: "mb.gbif.org:5000/openmaptiles-tools:latest"
     env_file: .env
     networks:
     - postgres_conn
@@ -107,21 +123,56 @@ services:
     networks:
     - postgres_conn
     env_file: .env
-    environment:
+    #environment:
       #BBOX: "8.25,46.97,9.58,47.52"
       #BBOX: "5.97,45.75,10.7,47.72"
-      BBOX: ${BBOX}
-      MIN_ZOOM: ${MIN_ZOOM}
-      MAX_ZOOM: ${MAX_ZOOM}
+      #BBOX: ${BBOX}
+      #MIN_ZOOM: ${MIN_ZOOM}
+      #MAX_ZOOM: ${MAX_ZOOM}
   postserve:
-    image: "openmaptiles/postserve:0.2"
+    image: "mb.gbif.org:5000/postserve:latest"
     env_file: .env
     networks:
      - postgres_conn
     ports:
-    - "8090:8080"
+    - "8181:8080"
     volumes:
      - ./build/openmaptiles.tm2source:/mapping
+  import-contour:
+    image: "mb.gbif.org:5000/import-contour"
+    volumes:
+     - /home/mblissett/basemap-vh-before-destruction/contour-data:/data/import
+    env_file: .env
+    networks:
+    - postgres_conn
+  import-bathymetry:
+    image: "mb.gbif.org:5000/import-bathymetry"
+    volumes:
+     - ../bathymetry/polygons:/data/import
+    env_file: .env
+    networks:
+    - postgres_conn
+  queue-tiles:
+    image: "mb.gbif.org:5000/tile-generation-tools:latest"
+    env_file: .env
+    entrypoint: ["python", "-u", "/usr/src/app/make-tile-generation-messages"]
+  tiles-to-database:
+    image: "mb.gbif.org:5000/tile-generation-tools:latest"
+    env_file: .env
+    entrypoint: ["python", "-u", "/usr/src/app/mbtiles-from-queue"]
+    volumes:
+     - ./output/:/output
+  tile-generation-tools:
+    image: "mb.gbif.org:5000/tile-generation-tools:latest"
+    env_file: .env
+  serve-vectortiles:
+    image: "mb.gbif.org:5000/tileserver-gl-light"
+    ports:
+     - "8123:80"
+    volumes:
+     - ./output/:/data
+  # Needs a config.json.
+
 
 networks:
   postgres_conn:

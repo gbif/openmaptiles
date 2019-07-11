@@ -4,8 +4,6 @@ generalized_tables:
     source: aeroway_polygon_gen2
     sql_filter: area>power(ZRES10,2)
     tolerance: ZRES11
-    sql_filter: # TODO
-    tolerance: # TODO
 
   # etldoc: imposm3 -> osm_aeroway_polygon_gen2
   aeroway_polygon_gen2:

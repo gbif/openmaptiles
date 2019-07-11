@@ -76,7 +76,7 @@ cd openmaptiles
 # Build the imposm mapping, the tm2source project and collect all SQL scripts
 make
 # You can also run the build process inside a Docker container
-docker run -v $(pwd):/tileset openmaptiles/openmaptiles-tools make
+docker-compose run openmaptiles-tools make
 ```
 
 You can execute the following manual steps (for better understanding)
@@ -98,9 +98,10 @@ Import external data from [OpenStreetMapData](http://openstreetmapdata.com/), [N
 
 ```bash
 docker-compose run import-water
+(or docker-compose run import-polar-water)
 docker-compose run import-natural-earth
 docker-compose run import-lakelines
-docker-compose run import-osmborder
+docker-compose run import-osmborder (needs .env PROJECTION set to 4326 temporarily)
 ```
 
 [Download OpenStreetMap data extracts](http://download.geofabrik.de/) and store the PBF file in the `./data` directory.

@@ -1,0 +1,7 @@
+tables:
+  world_extent:
+    fields:
+    - name: name
+      type: string
+    - name: geometry
+      type: validated_geometry

@@ -1,0 +1,17 @@
+layer:
+  id: "world_extent"
+  description: |
+      World Extent
+  buffer_size: 64
+  srs: +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
+  fields:
+    name:
+  datasource:
+    geometry_field: geometry
+    srid: 4326
+    query: (SELECT geometry, name FROM layer_world_extent(!bbox!)) AS t
+schema:
+  - ./layer.sql
+#datasources:
+#  - type: imposm3
+#    mapping_file: ./mapping.yaml
